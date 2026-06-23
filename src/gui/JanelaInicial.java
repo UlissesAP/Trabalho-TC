@@ -1,6 +1,6 @@
-package GUI;
+package gui;
 
-import GUI.enums.Operacao;
+import gui.enums.Operacao;
 
 import javax.swing.*;
 import java.awt.*;

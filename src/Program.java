@@ -1,6 +1,6 @@
-import GUI.JanelaInicial;
-import GUI.SeletorArquivos;
-import GUI.enums.Operacao;
+import gui.JanelaInicial;
+import gui.SeletorArquivos;
+import gui.enums.Operacao;
 
 import javax.swing.*;
 import java.io.File;
@@ -65,6 +65,7 @@ public class Program {
     }
 
     private void processarOperacao(Operacao operacao, List<File> arquivosEntrada) {
+        if (operacao == Operacao.COMPLEMENTO)
 
         System.out.println("[Aplicacao] processarOperacao chamado.");
         System.out.println("  Operação  : " + operacao.getDescricao());

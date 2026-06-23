@@ -1,4 +1,4 @@
-package GUI.enums;
+package gui.enums;
 
 public enum Operacao {
 
