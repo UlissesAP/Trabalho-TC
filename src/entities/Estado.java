@@ -3,14 +3,14 @@ package entities;
 public class Estado {
     private int id;
     private String nome;
-    private boolean eInicial;
-    private boolean eFinal;
+    private boolean inicial;
+    private boolean final_;
 
-    public Estado(int id, String nome, boolean eInicial, boolean eFinal) {
+    public Estado(int id, String nome, boolean inicial, boolean final_) {
         this.id = id;
         this.nome = nome;
-        this.eInicial = eInicial;
-        this.eFinal = eFinal;
+        this.inicial = inicial;
+        this.final_ = final_;
     }
 
     public int getId() {
@@ -29,19 +29,19 @@ public class Estado {
         this.nome = nome;
     }
 
-    public boolean iseInicial() {
-        return eInicial;
+    public boolean isInicial() {
+        return inicial;
     }
 
-    public void seteInicial(boolean eInicial) {
-        this.eInicial = eInicial;
+    public void setInicial(boolean inicial) {
+        this.inicial = inicial;
     }
 
-    public boolean iseFinal() {
-        return eFinal;
+    public boolean isFinal_() {
+        return final_;
     }
 
-    public void seteFinal(boolean eFinal) {
-        this.eFinal = eFinal;
+    public void setFinal_(boolean final_) {
+        this.final_ = final_;
     }
 }

@@ -35,10 +35,10 @@ public class AutomatoFinito {
 
             int id = Integer.parseInt(elemento.getAttribute("id"));
             String nome = elemento.getAttribute("name");
-            boolean eInicial = elemento.getElementsByTagName("initial").getLength() > 0;
-            boolean eFinal = elemento.getElementsByTagName("final").getLength() > 0;
+            boolean inicial = elemento.getElementsByTagName("initial").getLength() > 0;
+            boolean final_ = elemento.getElementsByTagName("final").getLength() > 0;
 
-            estados.put(id, new Estado(id, nome, eInicial, eFinal));
+            estados.put(id, new Estado(id, nome, inicial, final_));
         }
 
         nos = doc.getElementsByTagName("transition");
@@ -60,5 +60,13 @@ public class AutomatoFinito {
 
             transicoes.add(new Transicao(de, para, aoLer));
         }
+    }
+
+    public Map<Integer, Estado> getEstados() {
+        return estados;
+    }
+
+    public List<Transicao> getTransicoes() {
+        return transicoes;
     }
 }
