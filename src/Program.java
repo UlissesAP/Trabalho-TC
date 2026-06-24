@@ -17,12 +17,16 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Program {
 
     private AutomatoFinito resultadoFinal;
+    private boolean naoMostrarJflap = false;
     private final SeletorArquivos seletorArquivos = new SeletorArquivos();
 
     public static void main(String[] args) {
@@ -52,6 +56,8 @@ public class Program {
                 JOptionPane.showMessageDialog(null,
                         "Arquivo salvo em:\n" + destino.getAbsolutePath(),
                         "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+                perguntarAbrirJflap(destino);
             }
         }
     }
@@ -167,6 +173,33 @@ public class Program {
 
         System.out.println("[Aplicacao] salvarResultado chamado.");
         System.out.println("  Destino: " + arquivoDestino.getAbsolutePath());
+    }
+
+    private void perguntarAbrirJflap(File arquivo) {
+        if (naoMostrarJflap) return;
+
+        JCheckBox checkbox = new JCheckBox("Não mostrar novamente");
+        Object[] mensagem = {"Deseja visualizar o autômato no JFLAP?", checkbox};
+
+        int resposta = JOptionPane.showConfirmDialog(null, mensagem, "Abrir no JFLAP", JOptionPane.YES_NO_OPTION);
+
+        if (checkbox.isSelected()) {
+            naoMostrarJflap = true;
+        }
+        if (resposta == JOptionPane.YES_OPTION) {
+            abrirNoJflap(arquivo);
+        }
+    }
+
+    private void abrirNoJflap(File arquivo) {
+        try {
+            InputStream is = getClass().getResourceAsStream("JFLAP.jar");
+            File temp = File.createTempFile("JFLAP", ".jar");
+            Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Runtime.getRuntime().exec(new String[]{"java", "-jar", temp.getAbsolutePath(), arquivo.getAbsolutePath()});
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erro ao abrir o JFLAP:\n" + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void configurarLookAndFeel() {
