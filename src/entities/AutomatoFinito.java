@@ -95,6 +95,34 @@ public class AutomatoFinito {
         return true;
     }
 
+    public void completarAutomato() {
+        int novoId = estados.size();
+        Estado estadoMorto = new Estado(novoId, "q" + novoId, false, false);
+
+        for (Estado estado : estados) {
+
+            Set<String> copiaAlfabeto = new HashSet<>(alfabeto);
+
+            for (Transicao transicao : transicoes) {
+                if (transicao.getDe() == estado.getId())
+                    copiaAlfabeto.remove(transicao.getSimbolo());
+            }
+
+            if (!copiaAlfabeto.isEmpty()) {
+                for (String simbolo : copiaAlfabeto) {
+                    transicoes.add(new Transicao(estado.getId(), estadoMorto.getId(), simbolo));
+                }
+            }
+
+        }
+
+        for (String simbolo : alfabeto) {
+            transicoes.add(new Transicao(estadoMorto.getId(), estadoMorto.getId(), simbolo));
+        }
+
+        estados.add(estadoMorto);
+    }
+
     public List<Estado> getEstados() {
         return estados;
     }
