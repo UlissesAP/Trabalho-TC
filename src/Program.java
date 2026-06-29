@@ -87,19 +87,23 @@ public class Program {
                 resultadoFinal = OperacoesAutomato.complemento(arquivosEntrada.getFirst());
             }
 
-            else if(operacao == Operacao.ESTRELA){
+            else if (operacao == Operacao.ESTRELA) {
                 resultadoFinal = OperacoesAutomato.estrela(arquivosEntrada.getFirst());
             }
+
+            else if (operacao == Operacao.DIFERENCA_SIMETRICA) {
+                resultadoFinal = OperacoesAutomato.diferencaSimetrica(
+                        arquivosEntrada.get(0),
+                        arquivosEntrada.get(1)
+                );
+            }
+
             return true;
 
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-
-//        System.out.println("[Aplicacao] processarOperacao chamado.");
-//        System.out.println("  Operação  : " + operacao.getDescricao());
-//        System.out.println("  Arquivos  : " + arquivosEntrada);
     }
 
     private void salvarResultado(File arquivoDestino) {
