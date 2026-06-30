@@ -26,14 +26,6 @@ public class OperacoesAutomato {
     public static AutomatoFinito estrela(File arquivo){
         AutomatoFinito automato = new AutomatoFinito(arquivo);
 
-        if (!automato.isAFD()) {
-            throw new IllegalArgumentException("O autômato fornecido não é um AFD.");
-        }
-
-        if (!automato.isCompleto()) {
-            automato.completarAutomato();
-        }
-
         int idAntigoInic = -1;
         ArrayList<Integer> idAntigoFinal = new ArrayList<Integer>();
 
