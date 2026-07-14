@@ -68,7 +68,7 @@ public class Program {
     }
 
     private List<File> selecionarArquivosEntrada(Operacao operacao) {
-        if (operacao == Operacao.DIFERENCA_SIMETRICA) {
+        if (operacao == Operacao.DIFERENCA_SIMETRICA || operacao == Operacao.INTERSECCAO) {
             return seletorArquivos.selecionarDoisArquivos(null);
         } else {
             File arquivo = seletorArquivos.selecionarUmArquivo(null);
@@ -96,6 +96,17 @@ public class Program {
                         arquivosEntrada.get(0),
                         arquivosEntrada.get(1)
                 );
+            }
+
+            else if (operacao == Operacao.INTERSECCAO) {
+                resultadoFinal = OperacoesAutomato.interseccao(
+                        arquivosEntrada.get(0),
+                        arquivosEntrada.get(1)
+                );
+            }
+
+            else if (operacao == Operacao.REVERSO) {
+                resultadoFinal = OperacoesAutomato.reverso(arquivosEntrada.getFirst());
             }
 
             return true;

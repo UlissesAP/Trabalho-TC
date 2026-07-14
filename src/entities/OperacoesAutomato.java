@@ -173,6 +173,88 @@ public class OperacoesAutomato {
         return resultado;
     }
 
+    public static AutomatoFinito interseccao(File arquivo1, File arquivo2) {
+        AutomatoFinito a1 = new AutomatoFinito(arquivo1);
+        AutomatoFinito a2 = new AutomatoFinito(arquivo2);
+
+        if (temTransicaoVazia(a1) || temTransicaoVazia(a2)) {
+            throw new IllegalArgumentException("A intersecção não aceita autômatos com transições vazias.");
+        }
+
+        List<Estado> estados1 = a1.getEstados();
+        List<Estado> estados2 = a2.getEstados();
+
+        List<Estado> novosEstados = new ArrayList<>();
+        List<Transicao> novasTransicoes = new ArrayList<>();
+
+        for (int i = 0; i < estados1.size(); i++) {
+            for (int j = 0; j < estados2.size(); j++) {
+                Estado p = estados1.get(i);
+                Estado q = estados2.get(j);
+
+                int novoId = i * estados2.size() + j;
+                String novoNome = p.getNome() + "," + q.getNome();
+                boolean novoInicial = p.isInicial() && q.isInicial();
+                boolean novoFinal = p.isFinal_() && q.isFinal_();
+
+                novosEstados.add(new Estado(novoId, novoNome, novoInicial, novoFinal));
+            }
+        }
+
+        for (Transicao t1 : a1.getTransicoes()) {
+            for (Transicao t2 : a2.getTransicoes()) {
+                if (t1.getSimbolo().equals(t2.getSimbolo())) {
+                    int novoDe = idDoPar(estados1, estados2, t1.getDe(), t2.getDe());
+                    int novoPara = idDoPar(estados1, estados2, t1.getPara(), t2.getPara());
+
+                    novasTransicoes.add(new Transicao(novoDe, novoPara, t1.getSimbolo()));
+                }
+            }
+        }
+
+        return new AutomatoFinito(novosEstados, novasTransicoes);
+    }
+
+    public static AutomatoFinito reverso(File arquivo) {
+        AutomatoFinito automato = new AutomatoFinito(arquivo);
+
+        Estado inicialAntigo = null;
+        List<Estado> finaisAntigos = new ArrayList<>();
+
+        for (Estado estado : automato.getEstados()) {
+            if (estado.isInicial()) {
+                inicialAntigo = estado;
+            }
+            if (estado.isFinal_()) {
+                finaisAntigos.add(estado);
+            }
+        }
+
+        if (inicialAntigo == null) {
+            throw new IllegalArgumentException("O autômato não possui estado inicial.");
+        }
+        if (finaisAntigos.isEmpty()) {
+            throw new IllegalArgumentException("O autômato não possui estado final.");
+        }
+
+        inverterTransicoes(automato);
+
+        for (Estado estado : automato.getEstados()) {
+            estado.setInicial(false);
+            estado.setFinal_(false);
+        }
+
+        inicialAntigo.setFinal_(true);
+
+        if (finaisAntigos.size() == 1) {
+            finaisAntigos.get(0).setInicial(true);
+        } else {
+            criarInicialComTransicoesVazias(automato, finaisAntigos);
+        }
+
+        return automato;
+    }
+
     private static long chavePar(int id1, int id2) {
         return ((long) id1 << 32) ^ (id2 & 0xFFFFFFFFL);
     }
@@ -191,6 +273,53 @@ public class OperacoesAutomato {
             }
         }
         return -1;
+    }
+
+    private static boolean temTransicaoVazia(AutomatoFinito automato) {
+        for (Transicao t : automato.getTransicoes()) {
+            if (t.getSimbolo() == null || t.getSimbolo().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int posicaoDoEstado(List<Estado> estados, int id) {
+        for (int i = 0; i < estados.size(); i++) {
+            if (estados.get(i).getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int idDoPar(List<Estado> estados1, List<Estado> estados2, int id1, int id2) {
+        return posicaoDoEstado(estados1, id1) * estados2.size() + posicaoDoEstado(estados2, id2);
+    }
+
+    private static void inverterTransicoes(AutomatoFinito automato) {
+        for (Transicao t : automato.getTransicoes()) {
+            int de = t.getDe();
+            t.setDe(t.getPara());
+            t.setPara(de);
+        }
+    }
+
+    private static void criarInicialComTransicoesVazias(AutomatoFinito automato, List<Estado> destinos) {
+        int novoId = 0;
+
+        for (Estado estado : automato.getEstados()) {
+            if (estado.getId() >= novoId) {
+                novoId = estado.getId() + 1;
+            }
+        }
+
+        Estado novoInicial = new Estado(novoId, "q" + novoId, true, false);
+        automato.getEstados().add(novoInicial);
+
+        for (Estado destino : destinos) {
+            automato.getTransicoes().add(new Transicao(novoId, destino.getId(), ""));
+        }
     }
 
 }

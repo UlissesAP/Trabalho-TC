@@ -33,7 +33,7 @@ public class SeletorArquivos {
 
         // ── Primeiro arquivo ─────────────────────────────────────────────
         JFileChooser seletor1 = criarSeletorBase();
-        seletor1.setDialogTitle("Diferença Simétrica – 1º arquivo .jff");
+        seletor1.setDialogTitle("Selecione o 1º arquivo .jff");
         seletor1.setMultiSelectionEnabled(false);
 
         int r1 = seletor1.showOpenDialog(pai);
@@ -45,7 +45,7 @@ public class SeletorArquivos {
 
         // ── Segundo arquivo ──────────────────────────────────────────────
         JFileChooser seletor2 = criarSeletorBase();
-        seletor2.setDialogTitle("Diferença Simétrica – 2º arquivo .jff");
+        seletor2.setDialogTitle("Selecione o 2º arquivo .jff");
         seletor2.setMultiSelectionEnabled(false);
         seletor2.setCurrentDirectory(arquivos.get(0).getParentFile());
 
