@@ -4,7 +4,9 @@ public enum Operacao {
 
     COMPLEMENTO("Complemento"),
     ESTRELA("Estrela"),
-    DIFERENCA_SIMETRICA("Diferença Simétrica");
+    DIFERENCA_SIMETRICA("Diferença Simétrica"),
+    INTERSECCAO("Intersecção"),
+    REVERSO("Reverso");
 
     private final String descricao;
 

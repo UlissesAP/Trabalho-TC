@@ -31,7 +31,7 @@ public class JanelaInicial extends JDialog {
         painelPrincipal.add(labelTitulo, BorderLayout.NORTH);
 
         // ── Botões de operação ─────────────────────────────────────────────────
-        JPanel painelBotoes = new JPanel(new GridLayout(3, 1, 0, 12));
+        JPanel painelBotoes = new JPanel(new GridLayout(Operacao.values().length, 1, 0, 12));
         painelBotoes.setOpaque(false);
 
         for (Operacao op : Operacao.values()) {
@@ -43,8 +43,8 @@ public class JanelaInicial extends JDialog {
 
         // ── Rodapé / dica ──────────────────────────────────────────────────────
         JLabel labelDica = new JLabel(
-                "<html><center><i>Complemento e Estrela requerem 1 arquivo .jff<br>"
-                        + "Diferença Simétrica requer 2 arquivos .jff</i></center></html>",
+                "<html><center><i>Complemento, Estrela e Reverso requerem 1 arquivo .jff<br>"
+                        + "Diferença Simétrica e Intersecção requerem 2 arquivos .jff</i></center></html>",
                 SwingConstants.CENTER
         );
         labelDica.setFont(new Font("SansSerif", Font.PLAIN, 11));

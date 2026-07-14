@@ -123,6 +123,53 @@ public class AutomatoFinito {
         estados.add(estadoMorto);
     }
 
+    public boolean temTransicaoVazia() {
+        for (Transicao transicao : transicoes) {
+            if (transicao.getSimbolo() == null || transicao.getSimbolo().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int posicaoDoEstado(int id) {
+        for (int i = 0; i < estados.size(); i++) {
+            if (estados.get(i).getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int idDoPar(AutomatoFinito outro, int id1, int id2) {
+        return posicaoDoEstado(id1) * outro.estados.size() + outro.posicaoDoEstado(id2);
+    }
+
+    public void inverterTransicoes() {
+        for (Transicao transicao : transicoes) {
+            int de = transicao.getDe();
+            transicao.setDe(transicao.getPara());
+            transicao.setPara(de);
+        }
+    }
+
+    public void criarInicialComTransicoesVazias(List<Estado> destinos) {
+        int novoId = 0;
+
+        for (Estado estado : estados) {
+            if (estado.getId() >= novoId) {
+                novoId = estado.getId() + 1;
+            }
+        }
+
+        Estado novoInicial = new Estado(novoId, "q" + novoId, true, false);
+        estados.add(novoInicial);
+
+        for (Estado destino : destinos) {
+            transicoes.add(new Transicao(novoId, destino.getId(), ""));
+        }
+    }
+
     public List<Estado> getEstados() {
         return estados;
     }
