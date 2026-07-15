@@ -1,7 +1,0 @@
-@startuml
-class AutomatoFinito {
-  - List<Estado> estados
-  - List<Transicao> transicoes
-  - Set<String> alfabeto
-}
-@enduml

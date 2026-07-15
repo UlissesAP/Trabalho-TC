@@ -1,7 +1,0 @@
-@startuml
-class Transicao {
-  - int de
-  - int para
-  - String simbolo
-}
-@enduml

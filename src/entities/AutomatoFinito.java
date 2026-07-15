@@ -196,23 +196,40 @@ public class AutomatoFinito {
         return alfabeto;
     }
 
-    public Estado buscarEstadoPorId(int id) {
-        for (Estado e : estados) {
-            if (e.getId() == id) return e;
-        }
-        return null;
-    }
-
-    public int buscarDestino(int origem, String simbolo) {
+    public Set<Integer> moverComSimbolo(int estado, String simbolo) {
+        Set<Integer> destinos = new HashSet<>();
         for (Transicao t : transicoes) {
-            if (t.getDe() == origem && simbolo.equals(t.getSimbolo())) {
-                return t.getPara();
+            if (t.getDe() == estado && t.getSimbolo() != null
+                    && t.getSimbolo().equals(simbolo)) {
+                destinos.add(t.getPara());
             }
         }
-        return -1;
+        return destinos;
     }
 
-    public static long chavePar(int id1, int id2) {
-        return ((long) id1 << 32) ^ (id2 & 0xFFFFFFFFL);
+    public Set<Integer> fechoEpsilon(Set<Integer> estados) {
+        Stack<Integer> pilha = new Stack<>();
+        Set<Integer> fecho = new HashSet<>(estados);
+        pilha.addAll(estados);
+        while (!pilha.isEmpty()) {
+            int atual = pilha.pop();
+            for (Transicao t : transicoes) {
+                if (t.getDe() == atual
+                        && (t.getSimbolo() == null || t.getSimbolo().isEmpty())) {
+                    if (!fecho.contains(t.getPara())) {
+                        fecho.add(t.getPara());
+                        pilha.push(t.getPara());
+                    }
+                }
+            }
+        }
+        return fecho;
+    }
+
+    public boolean conjuntoContemFinal(Set<Integer> estados) {
+        for (Estado e : this.estados) {
+            if (e.isFinal_() && estados.contains(e.getId())) return true;
+        }
+        return false;
     }
 }

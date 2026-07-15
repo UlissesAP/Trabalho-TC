@@ -363,4 +363,9 @@ public class OperacoesAutomato {
         AutomatoFinito automato = new AutomatoFinito(arquivo);
         return new Minimizador().minimizar(automato);
     }
+
+    public static AutomatoFinito converterAFNParaAFD(File arquivo) {
+        AutomatoFinito automato = new AutomatoFinito(arquivo);
+        return new ConversorAFNparaAFD().converter(automato);
+    }
 }

@@ -9,7 +9,8 @@ public enum Operacao {
     REVERSO("Reverso"),
     UNIAO("União"),
     DIFERENCA("Diferença"),
-    MINIMIZACAO("Minimização");
+    MINIMIZACAO("Minimização"),
+    CONVERSAO_AFN_AFD("Conversão AFN → AFD");
 
     private final String descricao;
 

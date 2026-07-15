@@ -128,6 +128,10 @@ public class Program {
                 resultadoFinal = OperacoesAutomato.minimizar(arquivosEntrada.getFirst());
             }
 
+            else if (operacao == Operacao.CONVERSAO_AFN_AFD) {
+                resultadoFinal = OperacoesAutomato.converterAFNParaAFD(arquivosEntrada.getFirst());
+            }
+
             return true;
 
         } catch (IllegalArgumentException e) {
