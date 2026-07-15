@@ -6,7 +6,9 @@ public enum Operacao {
     ESTRELA("Estrela"),
     DIFERENCA_SIMETRICA("Diferença Simétrica"),
     INTERSECCAO("Intersecção"),
-    REVERSO("Reverso");
+    REVERSO("Reverso"),
+    UNIAO("União"),
+    DIFERENCA("Diferença");
 
     private final String descricao;
 

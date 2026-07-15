@@ -1,5 +1,15 @@
 package entities;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.util.*;
 
@@ -215,6 +225,90 @@ public class OperacoesAutomato {
         return new AutomatoFinito(novosEstados, novasTransicoes);
     }
 
+    /*==================================
+    ========= GRUPO 1 ==================
+    ===================================*/
+
+    public static AutomatoFinito uniao(File arquivo1, File arquivo2) {
+        AutomatoFinito a1 = new AutomatoFinito(arquivo1);
+        AutomatoFinito a2 = new AutomatoFinito(arquivo2);
+
+        Estado inicial1 = null;
+        Estado inicial2 = null;
+        for (Estado e : a1.getEstados()) {
+            if (e.isInicial()) { inicial1 = e; break; }
+        }
+        for (Estado e : a2.getEstados()) {
+            if (e.isInicial()) { inicial2 = e; break; }
+        }
+        if (inicial1 == null || inicial2 == null) {
+            throw new IllegalArgumentException("Autômato sem estado inicial.");
+        }
+
+        int maxId1 = 0;
+        for (Estado e : a1.getEstados()) {
+            if (e.getId() > maxId1) maxId1 = e.getId();
+        }
+
+        int offset = maxId1 + 1;
+        Map<Integer, Integer> idMap = new HashMap<>();
+        for (Estado e : a2.getEstados()) {
+            int antigo = e.getId();
+            int novo = antigo + offset;
+            idMap.put(antigo, novo);
+            e.setId(novo);
+            e.setNome(e.getNome() + "_2");
+        }
+        for (Transicao t : a2.getTransicoes()) {
+            t.setDe(idMap.get(t.getDe()));
+            t.setPara(idMap.get(t.getPara()));
+        }
+
+        int idNovoInicial = 0;
+        for (Estado e : a1.getEstados()) {
+            if (e.getId() >= idNovoInicial) idNovoInicial = e.getId() + 1;
+        }
+        for (Estado e : a2.getEstados()) {
+            if (e.getId() >= idNovoInicial) idNovoInicial = e.getId() + 1;
+        }
+
+        Estado novoInicial = new Estado(idNovoInicial, "qNovoInicial", true, false);
+
+        List<Transicao> todasTransicoes = new ArrayList<>(a1.getTransicoes());
+        todasTransicoes.addAll(a2.getTransicoes());
+        todasTransicoes.add(new Transicao(idNovoInicial, inicial1.getId(), ""));
+        todasTransicoes.add(new Transicao(idNovoInicial, idMap.get(inicial2.getId()), ""));
+
+        List<Estado> todosEstados = new ArrayList<>(a1.getEstados());
+        todosEstados.addAll(a2.getEstados());
+        todosEstados.add(novoInicial);
+
+        return new AutomatoFinito(todosEstados, todasTransicoes);
+    }
+
+    public static AutomatoFinito diferenca(File arquivo1, File arquivo2) {
+        AutomatoFinito a1 = new AutomatoFinito(arquivo1);
+
+        if (!a1.isAFD()) {
+            throw new IllegalArgumentException("O primeiro autômato não é um AFD.");
+        }
+
+        AutomatoFinito complementado = complemento(arquivo2);
+
+        File temp;
+        try {
+            temp = File.createTempFile("diferenca_", ".jff");
+            temp.deleteOnExit();
+            salvarEmArquivo(complementado, temp);
+        } catch (Exception e) {
+            throw new IllegalStateException("Erro ao criar arquivo temporário: " + e.getMessage());
+        }
+
+        return interseccao(arquivo1, temp);
+    }
+
+    /*======================================================*/
+
     public static AutomatoFinito reverso(File arquivo) {
         AutomatoFinito automato = new AutomatoFinito(arquivo);
 
@@ -275,4 +369,68 @@ public class OperacoesAutomato {
         return -1;
     }
 
+    private static void salvarEmArquivo(AutomatoFinito automato, File arquivo) {
+        try {
+            DocumentBuilder builder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder();
+            Document doc = builder.newDocument();
+
+            Element estrutura = doc.createElement("structure");
+            doc.appendChild(estrutura);
+
+            Element tipo = doc.createElement("type");
+            tipo.setTextContent("fa");
+            estrutura.appendChild(tipo);
+
+            Element automatoEl = doc.createElement("automaton");
+
+            for (Estado e : automato.getEstados()) {
+                Element estado = doc.createElement("state");
+                estado.setAttribute("id", String.valueOf(e.getId()));
+                estado.setAttribute("name", e.getNome());
+
+                Element x = doc.createElement("x");
+                x.setTextContent(String.valueOf(100 * (e.getId() + 1)));
+                estado.appendChild(x);
+
+                Element y = doc.createElement("y");
+                y.setTextContent(String.valueOf(200));
+                estado.appendChild(y);
+
+                if (e.isInicial()) {
+                    estado.appendChild(doc.createElement("initial"));
+                }
+                if (e.isFinal_()) {
+                    estado.appendChild(doc.createElement("final"));
+                }
+
+                automatoEl.appendChild(estado);
+            }
+
+            for (Transicao t : automato.getTransicoes()) {
+                Element transicao = doc.createElement("transition");
+
+                Element de = doc.createElement("from");
+                de.setTextContent(String.valueOf(t.getDe()));
+                transicao.appendChild(de);
+
+                Element para = doc.createElement("to");
+                para.setTextContent(String.valueOf(t.getPara()));
+                transicao.appendChild(para);
+
+                Element simbolo = doc.createElement("read");
+                simbolo.setTextContent(t.getSimbolo());
+                transicao.appendChild(simbolo);
+
+                automatoEl.appendChild(transicao);
+            }
+
+            estrutura.appendChild(automatoEl);
+
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.transform(new DOMSource(doc), new StreamResult(arquivo));
+        } catch (Exception e) {
+            throw new IllegalStateException("Erro ao salvar arquivo temporário: " + e.getMessage());
+        }
+    }
 }
