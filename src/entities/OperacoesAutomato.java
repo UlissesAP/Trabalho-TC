@@ -97,79 +97,49 @@ public class OperacoesAutomato {
             }
         }
 
-        // Localiza estados iniciais.
-        Estado inicial1 = null;
-        Estado inicial2 = null;
-        for (Estado e : a1.getEstados()) {
-            if (e.isInicial()) { inicial1 = e; break; }
-        }
-        for (Estado e : a2.getEstados()) {
-            if (e.isInicial()) { inicial2 = e; break; }
-        }
-        if (inicial1 == null || inicial2 == null) {
-            throw new IllegalArgumentException("Autômato sem estado inicial.");
-        }
-
         AutomatoFinito resultado = new AutomatoFinito();
 
-        // Mapa de pares (id1, id2) -> Estado do produto (somente pares alcançáveis).
-        Map<Long, Estado> mapaPares = new HashMap<>();
-        int proximoId = 0;
+        int n2 = a2.getEstados().size();
 
-        // Cria estado inicial do produto.
-        long chaveInicial = chavePar(inicial1.getId(), inicial2.getId());
-        boolean finalInicial = inicial1.isFinal_() ^ inicial2.isFinal_();
-        Estado estadoInicialProduto = new Estado(
-                proximoId++,
-                "q" + inicial1.getId() + "_" + inicial2.getId(),
-                true,
-                finalInicial
-        );
-        mapaPares.put(chaveInicial, estadoInicialProduto);
-        resultado.getEstados().add(estadoInicialProduto);
+        // Cria um estado no produto para cada par (e1, e2).
+        for (Estado e1 : a1.getEstados()) {
+            for (Estado e2 : a2.getEstados()) {
+                int novoId = e1.getId() * n2 + e2.getId();
+                boolean inicial = e1.isInicial() && e2.isInicial();
+                boolean final_ = e1.isFinal_() ^ e2.isFinal_();
 
-        // BFS sobre os pares alcançáveis.
-        Queue<int[]> fila = new LinkedList<>();
-        fila.add(new int[]{inicial1.getId(), inicial2.getId()});
-
-        while (!fila.isEmpty()) {
-            int[] par = fila.poll();
-            int id1 = par[0];
-            int id2 = par[1];
-            long chaveAtual = chavePar(id1, id2);
-            Estado estadoAtual = mapaPares.get(chaveAtual);
-
-            for (String simbolo : alfabeto) {
-                int prox1 = buscarDestino(a1, id1, simbolo);
-                int prox2 = buscarDestino(a2, id2, simbolo);
-
-                // Em AFDs completos, sempre deve existir uma transição.
-                if (prox1 == -1 || prox2 == -1) {
-                    throw new IllegalStateException(
-                            "Transição ausente em autômato que deveria estar completo.");
-                }
-
-                long chaveProx = chavePar(prox1, prox2);
-                Estado estadoProx = mapaPares.get(chaveProx);
-
-                if (estadoProx == null) {
-                    Estado e1 = buscarEstadoPorId(a1, prox1);
-                    Estado e2 = buscarEstadoPorId(a2, prox2);
-                    boolean finalProx = e1.isFinal_() ^ e2.isFinal_();
-                    estadoProx = new Estado(
-                            proximoId++,
-                            "q" + prox1 + "_" + prox2,
-                            false,
-                            finalProx
-                    );
-                    mapaPares.put(chaveProx, estadoProx);
-                    resultado.getEstados().add(estadoProx);
-                    fila.add(new int[]{prox1, prox2});
-                }
-
-                resultado.getTransicoes().add(
-                        new Transicao(estadoAtual.getId(), estadoProx.getId(), simbolo)
+                Estado novoEstado = new Estado(
+                        novoId,
+                        "q" + e1.getId() + "_" + e2.getId(),
+                        inicial,
+                        final_
                 );
+
+                resultado.getEstados().add(novoEstado);
+            }
+        }
+
+        // Cria as transições do produto: para cada par e cada símbolo do alfabeto.
+        for (Estado e1 : a1.getEstados()) {
+            for (Estado e2 : a2.getEstados()) {
+                int idOrigem = e1.getId() * n2 + e2.getId();
+
+                for (String simbolo : alfabeto) {
+                    int destino1 = buscarDestino(a1, e1.getId(), simbolo);
+                    int destino2 = buscarDestino(a2, e2.getId(), simbolo);
+
+                    // Em AFDs completos, sempre deve existir uma transição.
+                    if (destino1 == -1 || destino2 == -1) {
+                        throw new IllegalStateException(
+                                "Transição ausente em autômato que deveria estar completo.");
+                    }
+
+                    int idDestino = destino1 * n2 + destino2;
+
+                    resultado.getTransicoes().add(
+                            new Transicao(idOrigem, idDestino, simbolo)
+                    );
+                }
             }
         }
 
