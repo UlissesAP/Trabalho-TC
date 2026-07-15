@@ -23,6 +23,20 @@ public class AutomatoFinito {
         this.transicoes = transicoes;
     }
 
+    public AutomatoFinito(AutomatoFinito a) {
+        for (Estado e : a.getEstados()) {
+            this.estados.add(new Estado(e.getId(), e.getNome(), e.isInicial(), e.isFinal_()));
+        }
+
+        for (Transicao t : a.getTransicoes()) {
+            this.transicoes.add(new Transicao(t.getDe(), t.getPara(), t.getSimbolo()));
+        }
+
+        for (String s : a.getAlfabeto()) {
+            this.alfabeto.add(s);
+        }
+    }
+
     public AutomatoFinito(File arquivo) {
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();

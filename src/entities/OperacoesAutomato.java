@@ -1,15 +1,5 @@
 package entities;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.util.*;
 
@@ -33,7 +23,8 @@ public class OperacoesAutomato {
         return automato;
     }
 
-    public static AutomatoFinito complemento(AutomatoFinito automato) {
+    public static AutomatoFinito complemento(AutomatoFinito a) {
+        AutomatoFinito automato = new AutomatoFinito(a);
 
         if (!automato.isAFD()) {
             throw new IllegalArgumentException("O autômato fornecido não é um AFD.");
@@ -54,7 +45,6 @@ public class OperacoesAutomato {
         AutomatoFinito automato = new AutomatoFinito(arquivo);
 
         int idAntigoInic = -1;
-        ArrayList<Integer> idAntigoFinal = new ArrayList<Integer>();
 
         for (Estado estado : automato.getEstados()) {
             if(estado.isInicial()){
@@ -64,140 +54,136 @@ public class OperacoesAutomato {
             }
         }
 
-        for (Estado estado : automato.getEstados()) {
-            if(estado.isFinal_()){
-                idAntigoFinal.add(estado.getId());
-                estado.setFinal_(false);
-            }
-        }
-
-        int idNovoInicio = 0;
+        int idNovo = 0;
 
         for (Estado estado : automato.getEstados()) {
-            if (estado.getId() > idNovoInicio) {
-                idNovoInicio = estado.getId();
-            }
+            idNovo++;
         }
 
-        idNovoInicio = idNovoInicio + 1;
-        int idNovoFinal = idNovoInicio + 1;
-
-        Estado novoInicial = new Estado(idNovoInicio, "novoInicial", true, false);
-        automato.getTransicoes().add(new Transicao(idNovoInicio, idAntigoInic, ""));
-        automato.getTransicoes().add(new Transicao(idNovoInicio, idNovoFinal, ""));
+        Estado novoInicial = new Estado(idNovo, "novoInicial", true, true);
+        automato.getTransicoes().add(new Transicao(idNovo, idAntigoInic, ""));
         automato.getEstados().add(novoInicial);
 
-        Estado novoFinal = new Estado(idNovoFinal , "novoFinal", false, true);//não tem transição para ninguém;
-        //automato.getTransicoes().add(new Transicao(idNovoFinal, idNovoInicio, ""));
-        automato.getEstados().add(novoFinal);
-
-        for (int id : idAntigoFinal) {
-            automato.getTransicoes().add(new Transicao(id, idNovoFinal, ""));
-            automato.getTransicoes().add(new Transicao(id, idAntigoInic, ""));
+        for (Estado estado : automato.getEstados()) {
+            if(estado.isFinal_()) {
+                automato.getTransicoes().add(new Transicao(estado.getId(), idAntigoInic, ""));
+            }
         }
 
         return automato;
     }
 
+//    public static AutomatoFinito diferencaSimetrica(File arquivo1, File arquivo2) {
+//        AutomatoFinito a1 = new AutomatoFinito(arquivo1);
+//        AutomatoFinito a2 = new AutomatoFinito(arquivo2);
+//
+//        if (!a1.isAFD() || !a2.isAFD()) {
+//            throw new IllegalArgumentException("Os autômatos fornecidos devem ser AFDs.");
+//        }
+//
+//        if (!a1.isCompleto()) {
+//            a1.completarAutomato();
+//        }
+//        if (!a2.isCompleto()) {
+//            a2.completarAutomato();
+//        }
+//
+//        Set<String> alfabeto = new LinkedHashSet<>();
+//        for (Transicao t : a1.getTransicoes()) {
+//            if (t.getSimbolo() != null && !t.getSimbolo().isEmpty()) {
+//                alfabeto.add(t.getSimbolo());
+//            }
+//        }
+//        for (Transicao t : a2.getTransicoes()) {
+//            if (t.getSimbolo() != null && !t.getSimbolo().isEmpty()) {
+//                alfabeto.add(t.getSimbolo());
+//            }
+//        }
+//
+//        Estado inicial1 = null;
+//        Estado inicial2 = null;
+//        for (Estado e : a1.getEstados()) {
+//            if (e.isInicial()) { inicial1 = e; break; }
+//        }
+//        for (Estado e : a2.getEstados()) {
+//            if (e.isInicial()) { inicial2 = e; break; }
+//        }
+//        if (inicial1 == null || inicial2 == null) {
+//            throw new IllegalArgumentException("Autômato sem estado inicial.");
+//        }
+//
+//        AutomatoFinito resultado = new AutomatoFinito();
+//
+//        Map<Long, Estado> mapaPares = new HashMap<>();
+//        int proximoId = 0;
+//
+//        long chaveInicial = AutomatoFinito.chavePar(inicial1.getId(), inicial2.getId());
+//        boolean finalInicial = inicial1.isFinal_() ^ inicial2.isFinal_();
+//        Estado estadoInicialProduto = new Estado(
+//                proximoId++,
+//                "q" + inicial1.getId() + "_" + inicial2.getId(),
+//                true,
+//                finalInicial
+//        );
+//        mapaPares.put(chaveInicial, estadoInicialProduto);
+//        resultado.getEstados().add(estadoInicialProduto);
+//
+//        Queue<int[]> fila = new LinkedList<>();
+//        fila.add(new int[]{inicial1.getId(), inicial2.getId()});
+//
+//        while (!fila.isEmpty()) {
+//            int[] par = fila.poll();
+//            int id1 = par[0];
+//            int id2 = par[1];
+//            long chaveAtual = AutomatoFinito.chavePar(id1, id2);
+//            Estado estadoAtual = mapaPares.get(chaveAtual);
+//
+//            for (String simbolo : alfabeto) {
+//                int prox1 = a1.buscarDestino(id1, simbolo);
+//                int prox2 = a2.buscarDestino(id2, simbolo);
+//
+//                if (prox1 == -1 || prox2 == -1) {
+//                    throw new IllegalStateException(
+//                            "Transição ausente em autômato que deveria estar completo.");
+//                }
+//
+//                long chaveProx = AutomatoFinito.chavePar(prox1, prox2);
+//                Estado estadoProx = mapaPares.get(chaveProx);
+//
+//                if (estadoProx == null) {
+//                    Estado e1 = a1.buscarEstadoPorId(prox1);
+//                    Estado e2 = a2.buscarEstadoPorId(prox2);
+//                    boolean finalProx = e1.isFinal_() ^ e2.isFinal_();
+//                    estadoProx = new Estado(
+//                            proximoId++,
+//                            "q" + prox1 + "_" + prox2,
+//                            false,
+//                            finalProx
+//                    );
+//                    mapaPares.put(chaveProx, estadoProx);
+//                    resultado.getEstados().add(estadoProx);
+//                    fila.add(new int[]{prox1, prox2});
+//                }
+//
+//                resultado.getTransicoes().add(
+//                        new Transicao(estadoAtual.getId(), estadoProx.getId(), simbolo)
+//                );
+//            }
+//        }
+//
+//        return resultado;
+//    }
+
     public static AutomatoFinito diferencaSimetrica(File arquivo1, File arquivo2) {
         AutomatoFinito a1 = new AutomatoFinito(arquivo1);
         AutomatoFinito a2 = new AutomatoFinito(arquivo2);
 
-        if (!a1.isAFD() || !a2.isAFD()) {
-            throw new IllegalArgumentException("Os autômatos fornecidos devem ser AFDs.");
-        }
+        AutomatoFinito diferenca1 = diferenca(a1, a2);
+        AutomatoFinito diferenca2 = diferenca(a2, a1);
 
-        if (!a1.isCompleto()) {
-            a1.completarAutomato();
-        }
-        if (!a2.isCompleto()) {
-            a2.completarAutomato();
-        }
+        AutomatoFinito automatoFinal = uniao(diferenca1, diferenca2);
 
-        Set<String> alfabeto = new LinkedHashSet<>();
-        for (Transicao t : a1.getTransicoes()) {
-            if (t.getSimbolo() != null && !t.getSimbolo().isEmpty()) {
-                alfabeto.add(t.getSimbolo());
-            }
-        }
-        for (Transicao t : a2.getTransicoes()) {
-            if (t.getSimbolo() != null && !t.getSimbolo().isEmpty()) {
-                alfabeto.add(t.getSimbolo());
-            }
-        }
-
-        Estado inicial1 = null;
-        Estado inicial2 = null;
-        for (Estado e : a1.getEstados()) {
-            if (e.isInicial()) { inicial1 = e; break; }
-        }
-        for (Estado e : a2.getEstados()) {
-            if (e.isInicial()) { inicial2 = e; break; }
-        }
-        if (inicial1 == null || inicial2 == null) {
-            throw new IllegalArgumentException("Autômato sem estado inicial.");
-        }
-
-        AutomatoFinito resultado = new AutomatoFinito();
-
-        Map<Long, Estado> mapaPares = new HashMap<>();
-        int proximoId = 0;
-
-        long chaveInicial = AutomatoFinito.chavePar(inicial1.getId(), inicial2.getId());
-        boolean finalInicial = inicial1.isFinal_() ^ inicial2.isFinal_();
-        Estado estadoInicialProduto = new Estado(
-                proximoId++,
-                "q" + inicial1.getId() + "_" + inicial2.getId(),
-                true,
-                finalInicial
-        );
-        mapaPares.put(chaveInicial, estadoInicialProduto);
-        resultado.getEstados().add(estadoInicialProduto);
-
-        Queue<int[]> fila = new LinkedList<>();
-        fila.add(new int[]{inicial1.getId(), inicial2.getId()});
-
-        while (!fila.isEmpty()) {
-            int[] par = fila.poll();
-            int id1 = par[0];
-            int id2 = par[1];
-            long chaveAtual = AutomatoFinito.chavePar(id1, id2);
-            Estado estadoAtual = mapaPares.get(chaveAtual);
-
-            for (String simbolo : alfabeto) {
-                int prox1 = a1.buscarDestino(id1, simbolo);
-                int prox2 = a2.buscarDestino(id2, simbolo);
-
-                if (prox1 == -1 || prox2 == -1) {
-                    throw new IllegalStateException(
-                            "Transição ausente em autômato que deveria estar completo.");
-                }
-
-                long chaveProx = AutomatoFinito.chavePar(prox1, prox2);
-                Estado estadoProx = mapaPares.get(chaveProx);
-
-                if (estadoProx == null) {
-                    Estado e1 = a1.buscarEstadoPorId(prox1);
-                    Estado e2 = a2.buscarEstadoPorId(prox2);
-                    boolean finalProx = e1.isFinal_() ^ e2.isFinal_();
-                    estadoProx = new Estado(
-                            proximoId++,
-                            "q" + prox1 + "_" + prox2,
-                            false,
-                            finalProx
-                    );
-                    mapaPares.put(chaveProx, estadoProx);
-                    resultado.getEstados().add(estadoProx);
-                    fila.add(new int[]{prox1, prox2});
-                }
-
-                resultado.getTransicoes().add(
-                        new Transicao(estadoAtual.getId(), estadoProx.getId(), simbolo)
-                );
-            }
-        }
-
-        return resultado;
+        return automatoFinal;
     }
 
     public static AutomatoFinito interseccao(File arquivo1, File arquivo2) {
@@ -242,7 +228,9 @@ public class OperacoesAutomato {
         return new AutomatoFinito(novosEstados, novasTransicoes);
     }
 
-    public static AutomatoFinito interseccao(AutomatoFinito a1, AutomatoFinito a2) {
+    public static AutomatoFinito interseccao(AutomatoFinito automato1, AutomatoFinito automato2) {
+        AutomatoFinito a1 = new AutomatoFinito(automato1);
+        AutomatoFinito a2 = new AutomatoFinito(automato2);
 
         if (a1.temTransicaoVazia() || a2.temTransicaoVazia()) {
             throw new IllegalArgumentException("A intersecção não aceita autômatos com transições vazias.");
@@ -343,25 +331,87 @@ public class OperacoesAutomato {
         return new AutomatoFinito(todosEstados, todasTransicoes);
     }
 
+    public static AutomatoFinito uniao(AutomatoFinito automato1, AutomatoFinito automato2) {
+        AutomatoFinito a1 = new AutomatoFinito(automato1);
+        AutomatoFinito a2 = new AutomatoFinito(automato2);
+
+        Estado inicial1 = null;
+        Estado inicial2 = null;
+        for (Estado e : a1.getEstados()) {
+            if (e.isInicial()) { inicial1 = e; break; }
+        }
+        for (Estado e : a2.getEstados()) {
+            if (e.isInicial()) { inicial2 = e; break; }
+        }
+        if (inicial1 == null || inicial2 == null) {
+            throw new IllegalArgumentException("Autômato sem estado inicial.");
+        }
+
+        int maxId1 = 0;
+        for (Estado e : a1.getEstados()) {
+            if (e.getId() > maxId1) maxId1 = e.getId();
+        }
+
+        int offset = maxId1 + 1;
+        Map<Integer, Integer> idMap = new HashMap<>();
+        for (Estado e : a2.getEstados()) {
+            int antigo = e.getId();
+            int novo = antigo + offset;
+            idMap.put(antigo, novo);
+            e.setId(novo);
+            e.setNome(e.getNome() + "_2");
+        }
+        for (Transicao t : a2.getTransicoes()) {
+            t.setDe(idMap.get(t.getDe()));
+            t.setPara(idMap.get(t.getPara()));
+        }
+
+        int idNovoInicial = 0;
+        for (Estado e : a1.getEstados()) {
+            if (e.getId() >= idNovoInicial) idNovoInicial = e.getId() + 1;
+        }
+        for (Estado e : a2.getEstados()) {
+            if (e.getId() >= idNovoInicial) idNovoInicial = e.getId() + 1;
+        }
+
+        Estado novoInicial = new Estado(idNovoInicial, "qNovoInicial", true, false);
+
+        List<Transicao> todasTransicoes = new ArrayList<>(a1.getTransicoes());
+        todasTransicoes.addAll(a2.getTransicoes());
+        todasTransicoes.add(new Transicao(idNovoInicial, inicial1.getId(), ""));
+        todasTransicoes.add(new Transicao(idNovoInicial, idMap.get(inicial2.getId()), ""));
+
+        List<Estado> todosEstados = new ArrayList<>(a1.getEstados());
+        todosEstados.addAll(a2.getEstados());
+        todosEstados.add(novoInicial);
+
+        return new AutomatoFinito(todosEstados, todasTransicoes);
+    }
+
     public static AutomatoFinito diferenca(File arquivo1, File arquivo2) {
         AutomatoFinito a1 = new AutomatoFinito(arquivo1);
+        AutomatoFinito a2 = new AutomatoFinito(arquivo2);
 
         if (!a1.isAFD()) {
             throw new IllegalArgumentException("O primeiro autômato não é um AFD.");
         }
 
-        AutomatoFinito complementado = complemento(arquivo2);
+        AutomatoFinito complementado = complemento(a2);
 
-        File temp;
-        try {
-            temp = File.createTempFile("diferenca_", ".jff");
-            temp.deleteOnExit();
-            salvarEmArquivo(complementado, temp);
-        } catch (Exception e) {
-            throw new IllegalStateException("Erro ao criar arquivo temporário: " + e.getMessage());
+        return interseccao(a1, complementado);
+    }
+
+    public static AutomatoFinito diferenca(AutomatoFinito automato1, AutomatoFinito automato2) {
+        AutomatoFinito a1 = new AutomatoFinito(automato1);
+        AutomatoFinito a2 = new AutomatoFinito(automato2);
+
+        if (!a1.isAFD()) {
+            throw new IllegalArgumentException("O primeiro autômato não é um AFD.");
         }
 
-        return interseccao(arquivo1, temp);
+        AutomatoFinito complementado = complemento(a2);
+
+        return interseccao(a1, complementado);
     }
 
     /*======================================================*/
@@ -409,70 +459,5 @@ public class OperacoesAutomato {
     public static AutomatoFinito minimizar(File arquivo) {
         AutomatoFinito automato = new AutomatoFinito(arquivo);
         return new Minimizador().minimizar(automato);
-    }
-
-    private static void salvarEmArquivo(AutomatoFinito automato, File arquivo) {
-        try {
-            DocumentBuilder builder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder();
-            Document doc = builder.newDocument();
-
-            Element estrutura = doc.createElement("structure");
-            doc.appendChild(estrutura);
-
-            Element tipo = doc.createElement("type");
-            tipo.setTextContent("fa");
-            estrutura.appendChild(tipo);
-
-            Element automatoEl = doc.createElement("automaton");
-
-            for (Estado e : automato.getEstados()) {
-                Element estado = doc.createElement("state");
-                estado.setAttribute("id", String.valueOf(e.getId()));
-                estado.setAttribute("name", e.getNome());
-
-                Element x = doc.createElement("x");
-                x.setTextContent(String.valueOf(100 * (e.getId() + 1)));
-                estado.appendChild(x);
-
-                Element y = doc.createElement("y");
-                y.setTextContent(String.valueOf(200));
-                estado.appendChild(y);
-
-                if (e.isInicial()) {
-                    estado.appendChild(doc.createElement("initial"));
-                }
-                if (e.isFinal_()) {
-                    estado.appendChild(doc.createElement("final"));
-                }
-
-                automatoEl.appendChild(estado);
-            }
-
-            for (Transicao t : automato.getTransicoes()) {
-                Element transicao = doc.createElement("transition");
-
-                Element de = doc.createElement("from");
-                de.setTextContent(String.valueOf(t.getDe()));
-                transicao.appendChild(de);
-
-                Element para = doc.createElement("to");
-                para.setTextContent(String.valueOf(t.getPara()));
-                transicao.appendChild(para);
-
-                Element simbolo = doc.createElement("read");
-                simbolo.setTextContent(t.getSimbolo());
-                transicao.appendChild(simbolo);
-
-                automatoEl.appendChild(transicao);
-            }
-
-            estrutura.appendChild(automatoEl);
-
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.transform(new DOMSource(doc), new StreamResult(arquivo));
-        } catch (Exception e) {
-            throw new IllegalStateException("Erro ao salvar arquivo temporário: " + e.getMessage());
-        }
     }
 }
