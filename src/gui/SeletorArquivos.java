@@ -13,6 +13,8 @@ public class SeletorArquivos {
     private static final FileNameExtensionFilter FILTRO_JFF =
             new FileNameExtensionFilter("Arquivos JFLAP (*.jff)", "jff");
 
+    private File diretorioAtual;
+
     public File selecionarUmArquivo(Component pai) {
         JFileChooser seletor = criarSeletorBase();
         seletor.setDialogTitle("Selecione o arquivo .jff de entrada");
@@ -21,7 +23,9 @@ public class SeletorArquivos {
         int resultado = seletor.showOpenDialog(pai);
 
         if (resultado == JFileChooser.APPROVE_OPTION) {
-            return seletor.getSelectedFile();
+            File arquivo = seletor.getSelectedFile();
+            diretorioAtual = arquivo.getParentFile();
+            return arquivo;
         }
 
         mostrarMensagemCancelamento(pai, "Nenhum arquivo foi selecionado.");
@@ -55,6 +59,7 @@ public class SeletorArquivos {
             return null;
         }
         arquivos.add(seletor2.getSelectedFile());
+        diretorioAtual = seletor2.getSelectedFile().getParentFile();
 
         return arquivos;
     }
@@ -96,9 +101,8 @@ public class SeletorArquivos {
     }
 
     private JFileChooser criarSeletorBase() {
-        JFileChooser seletor = new JFileChooser(
-                System.getProperty("user.home")
-        );
+        String path = (diretorioAtual != null) ? diretorioAtual.getPath() : System.getProperty("user.home");
+        JFileChooser seletor = new JFileChooser(path);
         seletor.setFileFilter(FILTRO_JFF);
         seletor.setAcceptAllFileFilterUsed(false);
         return seletor;
