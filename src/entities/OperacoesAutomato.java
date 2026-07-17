@@ -62,6 +62,10 @@ public static AutomatoFinito estrela(File arquivo){
         }
     }
 
+    if (idAntigoInic == -1) {
+        throw new IllegalArgumentException("Autômato sem estado inicial.");
+    }
+
     int idNovoInicio = 0;
 
     for (Estado estado : automato.getEstados()) {
@@ -325,17 +329,17 @@ public static AutomatoFinito estrela(File arquivo){
     public static AutomatoFinito diferenca(File arquivo1, File arquivo2) {
         AutomatoFinito a1 = new AutomatoFinito(arquivo1);
         AutomatoFinito a2 = new AutomatoFinito(arquivo2);
-        if(!a1.isCompleto()) {
-            a1.completarAutomato();
-        }
-        if(!a2.isCompleto()) {
-            a2.completarAutomato();
-        }
         if (!a1.isAFD()) {
             a1 = new ConversorAFNparaAFD().converter(a1);
         }
         if (!a2.isAFD()) {
             a2 = new ConversorAFNparaAFD().converter(a2);
+        }
+        if(!a1.isCompleto()) {
+            a1.completarAutomato();
+        }
+        if(!a2.isCompleto()) {
+            a2.completarAutomato();
         }
         AutomatoFinito complementado = complemento(a2);
         return interseccao(a1, complementado);
@@ -344,17 +348,17 @@ public static AutomatoFinito estrela(File arquivo){
     public static AutomatoFinito diferenca(AutomatoFinito automato1, AutomatoFinito automato2) {
         AutomatoFinito a1 = new AutomatoFinito(automato1);
         AutomatoFinito a2 = new AutomatoFinito(automato2);
-        if(!a1.isCompleto()) {
-            a1.completarAutomato();
-        }
-        if(!a2.isCompleto()) {
-            a2.completarAutomato();
-        }
         if (!a1.isAFD()) {
             a1 = new ConversorAFNparaAFD().converter(a1);
         }
         if (!a2.isAFD()) {
             a2 = new ConversorAFNparaAFD().converter(a2);
+        }
+        if(!a1.isCompleto()) {
+            a1.completarAutomato();
+        }
+        if(!a2.isCompleto()) {
+            a2.completarAutomato();
         }
         AutomatoFinito complementado = complemento(a2);
         return interseccao(a1, complementado);

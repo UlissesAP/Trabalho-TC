@@ -8,10 +8,10 @@ public enum Operacao {
     REVERSO("Reverso"),
     CONCATENACAO("Concatenação"),
     HOMOMORFISMO("Homomorfismo"),
-    COMPLEMENTO("Complemento"),
     ESTRELA("Estrela"),
-    DIFERENCA_SIMETRICA("Diferença Simétrica"),
     CONVERSAO_AFN_AFD("Conversão AFN → AFD"),
+    COMPLEMENTO("Complemento"),
+    DIFERENCA_SIMETRICA("Diferença Simétrica"),
     MINIMIZACAO("Minimização");
 
     private final String descricao;
